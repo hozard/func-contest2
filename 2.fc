@@ -1,18 +1,35 @@
-{-
-
-  TASK 2 - Merge hashmaps (dictionaries)
-  Write the method that merges two hashmaps into one. When keys of hashmaps
-  interesect - values from first hashmap should be used, while discarded
-  key/value pairs should be stored into separate hashmap.
-  Method should return two hashmaps (merged_dict, discared_dict). If any
-  of resulting hashmaps is empty it should be represented by `null` value.
-  Hashmap key length is 256 bit. Each hashmap has at most 256 elements.
--}
-
-() recv_internal() {
-}
-
-
-;; testable
 (cell, cell) merge_hashmaps(cell dict1, cell dict2) method_id {
+    cell merged_dict = dict1; // Start with the first hashmap
+    cell discarded_dict = null(); // Initialize the discarded hashmap
+    int key_len = 256; // The key length is 256 bits
+
+    // Iterate through the second hashmap
+    int key = 0;
+    int has_next = 1;
+    (slice value, int next_key, int next_has_next) = dict2.udict_get_min?(key_len);
+    while (has_next) {
+        // Check if the key exists in the first hashmap
+        (slice existing_value, int exists) = merged_dict.udict_get?(key_len, key);
+        if (exists) {
+            // If the key exists, add it to the discarded_dict
+            discarded_dict = discarded_dict.udict_set(key_len, key, value);
+        } else {
+            // If the key does not exist, add it to the merged_dict
+            merged_dict = merged_dict.udict_set(key_len, key, value);
+        }
+        // Move to the next key/value pair in the second hashmap
+        key = next_key;
+        has_next = next_has_next;
+        (value, next_key, next_has_next) = dict2.udict_get_next?(key_len, key);
+    }
+
+    // Check if the resulting hashmaps are empty and represent them with null if they are
+    if (merged_dict.dict_empty?()) {
+        merged_dict = null();
+    }
+    if (discarded_dict.dict_empty?()) {
+        discarded_dict = null();
+    }
+
+    return (merged_dict, discarded_dict);
 }
